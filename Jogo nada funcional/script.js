@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const quadradinhos = document.querySelectorAll(".grid div")
     const telaDePontuacao = document.querySelector("#pontuacao")
-    let largura = 16
+    const largura = 16
     let posicaoProtagonista = 361
-    let posicaoInimigo = 0
     let inimigosDerrotados = []
     let pontuacao = 0
     let direcao = 1
@@ -15,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         32,33,34,35,36,37,38,39,40,41
     ]
 
-    inimigos.forEach( inimigo => quadradinhos[posicaoInimigo + inimigo].classList.add('inimigo'))
+    inimigos.map(inimigo => quadradinhos[inimigo].classList.add('inimigo'))
     quadradinhos[posicaoProtagonista].classList.add('protagonista')
 
     function moverProtagonista(e) {

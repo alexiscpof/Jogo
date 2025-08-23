@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pontuacao = 0
     let direcao = 1
     let InimigoId
-
+    telaDePontuacao.textContent = pontuacao
     const inimigos = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
         16,17,18,19,20,21,22,23,24,25,
@@ -86,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 pontuacao++
                 telaDePontuacao.textContent = pontuacao
             }
+            estado=atualizarPontuacao(estado,posicaoDoLaser)
+            render(estado,quadradinhos,pontuacao)
             if (posicaoDoLaser < largura) {
                 clearInterval(laserId)
                 setTimeout(() => quadradinhos[posicaoDoLaser].classList.remove('laser'), 100)

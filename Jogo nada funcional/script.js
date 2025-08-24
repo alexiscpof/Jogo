@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const quadradinhos = document.querySelectorAll(".grid div")
     const telaDePontuacao = document.querySelector("#pontuacao")
+       const frameRate = 1000/60; // 60 FPS
     const inimigos = [
          0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
          16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
@@ -11,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let direcao = 1
     let pontuacao = 0
     let inimigosDerrotados = []
-    inimigos.map((inimigos) => quadradinhos[inimigos].classList.add("inimigo"))
+    estadoAtual.inimigos.map(inimigo => quadradinhos[inimigo].classList.add('inimigo'))
     
 
     /*A função para mover o jogador utiliza o último estado do jogador e uma tecla pressionada. Caso a tecla pressionada seja a seta para a esquerda e o jogador não esteja

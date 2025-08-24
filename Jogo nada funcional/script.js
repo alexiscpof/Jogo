@@ -2,17 +2,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const quadradinhos = document.querySelectorAll(".grid div")
     const telaDePontuacao = document.querySelector("#pontuacao")
     const largura = 16
-    let posicaoProtagonista = 352
-    let inimigosDerrotados = []
-    let pontuacao = 0
-    let direcao = 1
-    let InimigoId
-    telaDePontuacao.textContent = pontuacao
-    const inimigos = [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        16,17,18,19,20,21,22,23,24,25,
-        32,33,34,35,36,37,38,39,40,41
-    ]
+const estadoInicial = {
+        posicaoProtagonista: 361,
+        inimigos: [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+            32, 33, 34, 35, 36, 37, 38, 39, 40, 41
+        ],
+        direcaoInimigos: 1,
+        pontuacao: 0,
+        inimigosDerrotados: [],
+        fimDeJogo: false,
+        vitoria: false, 
+    };
+
+    let estadoAtual = estadoInicial;
 
     inimigos.map(inimigo => quadradinhos[inimigo].classList.add('inimigo'))
     quadradinhos[posicaoProtagonista].classList.add('protagonista')

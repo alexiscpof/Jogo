@@ -12,8 +12,8 @@
     width: 25px;
     height: 25px;
 }
-.protagonista {
-    background-image: url('image/protagonista.png');
+.jogador {
+    background-image: url('image/jogador.png');
 }
 .inimigo {
     background-image: url('image/inimigo.png');

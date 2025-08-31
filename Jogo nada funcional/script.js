@@ -1,101 +1,113 @@
+//Esta primeira linha nos garante que o código js só será executando quando todo o conteúdo da página tiver sido carregado.
 document.addEventListener('DOMContentLoaded', () => {
+    //Seleciona todos os divs que compõem a grade do jogo. (cada div é uma posição que pode ser ocupada por um elemento como um inimigo, um laser ou o próprio jogador)
     const quadradinhos = document.querySelectorAll(".grid div")
+    //Seleciona o elemento que vai mostrar a pontuação do jogo.
     const telaDePontuacao = document.querySelector("#pontuacao")
 
-    // --- Estado inicial (imutável) ---
-    const largura = 16
-    const total = quadradinhos.length
-    const altura = total / largura
-
+    /*Cria o estado inicial do jogo, definindo a largura e o tamanho total da grade, a posição inicial do jogador e dos inimigos, a direção de movimento dos
+    inimigos.*/
     const estadoInicial = {
-        largura,
-        total,
-        altura,
-        jogador: 352, // já está alinhado com sua grade
+        largura: 16,
+        total: quadradinhos.length,
+        jogador: 352, //O jogador inicia na região inferior da grade
         inimigos: [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-        16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-        32, 33, 34, 35, 36, 37, 38, 39, 40, 41
-        ],
-        dirHorizontal: 1,
-        lasers: [],
-        explosoes: [],      // posições que exibem "boom" por 1 tick
-        pontuacao: 0,
-        status: "jogando"   // "jogando" | "vitoria" | "derrota"
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+            32, 33, 34, 35, 36, 37, 38, 39, 40, 41
+        ], //Os inimigos, inicialmente, ocupam as primeiras linhas da grade.
+        direcao: 1, //1 significa que o sentido é para a direita, -1 é para a esquerda
+        lasers: [], //Lista que contém os lasers ativos
+        explosoes: [],
+        pontuacao: 0, //Contador de pontos do jogo.
+        status: "jogando" //Indica que o jogo está ativo. (vitoria / jogando / derrota)
     }
 
-    // Única variável mutável para “trocar” o estado renderizado na tela
+    //Aqui usamos uma variável mutável para atualizar o estado renderizado na tela.
     let estadoAtual = estadoInicial
 
-    // --- Funções puras de atualização de estado ---
+    //A função para mover o jogador recebe o estado atual do jogador e a tecla pressionada.
     const moverJogador = (estado, tecla) => {
+        //Copia as informações relevantes do estado atual que servirão para calcular o novo estado.
         const { largura, jogador, status } = estado
+        //Se o jogo não estiver ativo, não altera o estado.
         if (status !== "jogando") return estado
-
-        if (tecla === "ArrowLeft" && jogador % largura !== 0) {
-            return { ...estado, jogador: jogador - 1 }
-        } else if (tecla === "ArrowRight" && jogador % largura !== largura - 1) {
-            return { ...estado, jogador: jogador + 1 }
-        } else if (tecla === " " || tecla === "Spacebar" || tecla === "Space") {
-            return atirar(estado)
-        } else {
-            return estado
-        }
+        /*Se o usuário pressionar a seta para a esquerda ou a tecla A e o jogador não estiver encostado na borda esquerda, o estado é alterado, com a posição do jogador decrementada
+        (ou seja, o jogador se move uma posição para e esquerda na grade).*/
+        else if ((tecla === "ArrowLeft" || tecla === "a" || tecla === "A") && jogador % largura !== 0)  return { ...estado, jogador: jogador - 1 }
+        /*Se o usuário pressionar a seta para a direita ou a tecla D e o jogador não estiver encostado na borda direita, o estado é alterado, com a posição do jogador incrementada
+        (ou seja, o jogador se move uma posição para e direita na grade).*/
+        else if ((tecla === "ArrowRight" || tecla === "d" || tecla === "D") && jogador % largura !== largura - 1) return { ...estado, jogador: jogador + 1 }
+        //Caso a tecla pressionada seja a barra de espaço, chama a função atirar.
+        else if (tecla === " " || tecla === "Spacebar" || tecla === "Space") return atirar(estado)
+        //Caso nenhuma condição seja satisfeita, retorna o estado inalterado.
+        else return estado
     }
-
+    //Função que dispara o laser.
     const atirar = (estado) => {
+        //Copia as informações relevantes do estado atual para o disparo dos lasers.
         const { jogador, largura, status } = estado
+        //Verifica se o jogo está ativo, retornando o estado inalterado caso esteja inativo.
         if (status !== "jogando") return estado
-
+        //Define a posição onde surge o laser, que é uma posição acima da posição do jogador.
         const origem = jogador - largura
-        // se já está na borda superior, não cria laser
-        if (origem < 0) return estado
-
-        // permite múltiplos lasers; para 1 por vez, filtre por length === 0
-        return { ...estado, lasers: [...estado.lasers, origem] }
+        //Retorna o estado incluindo o disparo na lista 'lasers'.
+        return { ...estado, lasers: [...estado.lasers, origem]}
     }
-
-    const moverInimigos = (estado) => {
-        const { largura, inimigos, dirHorizontal, total, jogador, status } = estado
-        if (status !== "jogando") return estado
-        if (inimigos.length === 0) return { ...estado, status: "vitoria" }
-
-        const anyAtLeft  = inimigos.some(p => p % largura === 0)
-        const anyAtRight = inimigos.some(p => p % largura === largura - 1)
-
-        // se algum inimigo atingiu a borda na direção atual -> desce e inverte a direção horizontal
-        if ((dirHorizontal === -1 && anyAtLeft) || (dirHorizontal === 1 && anyAtRight)) {
-            const novosInimigos = inimigos.map(p => p + largura)
-            const novoDirHorizontal = -dirHorizontal
-            const baseInicio = total - largura
-            const chegouNaBase = novosInimigos.some(p => p >= baseInicio)
-            const colidiuComJogador = novosInimigos.includes(jogador)
-            const novoStatus = colidiuComJogador || chegouNaBase ? "derrota"
-                            : (novosInimigos.length === 0 ? "vitoria" : "jogando")
-            return { ...estado, inimigos: novosInimigos, dirHorizontal: novoDirHorizontal, status: novoStatus }
-        }
-
-        // caso normal: move horizontalmente
-        const novosInimigos = inimigos.map(p => p + dirHorizontal)
-        const baseInicio = total - largura
-        const chegouNaBase = novosInimigos.some(p => p >= baseInicio)
+    //Função auxiliar para a movimentação do jogador.
+    const avaliarStatus = (novosInimigos, estado) => {
+        //Copia as informações relevantes do estado para a avaliação do novo status.
+        const { jogador, largura, total } = estado
+        //Calcula a última linha da grade do jogo (na verdade, esta é a última posição da penúltima linha, mas será considerada para o cálculo da última linha)
+        const ultimaLinha = total - largura
+        //Verifica se algum inimigos alcançou o última linha da grade do jogo.
+        const chegouNaBase = novosInimigos.some(p => p > ultimaLinha)
+        //Verifica se houve alguma colisão entre o jogador e um inimigo
         const colidiuComJogador = novosInimigos.includes(jogador)
-        const novoStatus = colidiuComJogador || chegouNaBase ? "derrota"
-                        : (novosInimigos.length === 0 ? "vitoria" : "jogando")
-        return { ...estado, inimigos: novosInimigos, dirHorizontal: dirHorizontal, status: novoStatus }
+        //Caso o jogador tenha colidido com um inimigo ou algum inimigos alcançou a última linha, o jogador perde.
+        if (colidiuComJogador || chegouNaBase) return "derrota"
+        //Caso não hajam mais inimigos, o jogador vence.
+        else if (novosInimigos.length === 0) return "vitoria"
+        //Caso nenhuma condição seja satisfeita, retorna o estado recebido.
+        else return estado.status
     }
-
+    //Função responsável por movimentar os inimigos.
+    const moverInimigos = (estado) => {
+        //Copia as informações relevantes do código para a movimentação dos inimigos.
+        const { largura, inimigos, direcao, status } = estado
+        //Se o jogo estiver inativo, mantém o estado inalterado.
+        if (status !== "jogando") return estado
+        //Verifica se algum inimigo chegou nas bordas da grade do jogo.
+        const bateuNaBordaEsquerda = inimigos.some(p => p % largura === 0) 
+        const bateuNaBordaDireita  = inimigos.some(p => p % largura === largura - 1)
+        //O if representa o caso dos inimigos chegarem em alguma das bordas. O else representa o caso dos inimigos não estarem em nenhuma das bordas.
+        if ((direcao === -1 && bateuNaBordaEsquerda) || (direcao === 1 && bateuNaBordaDireita)) {
+            //Os inimigos descem uma posição
+            const novosInimigos = inimigos.map(p => p + largura)
+            //Mudam de direção
+            const novaDirecao = -direcao 
+            //Calcula o novo status do jogo com base na nova posição dos inimigos.
+            const novoStatus = avaliarStatus(novosInimigos, estado)
+            //Retorna o novo estado.
+            return { ...estado, inimigos: novosInimigos, direcao: novaDirecao, status: novoStatus }
+        } else {
+            //Os inimigos se deslocam para a quadrado ao lado, de acordo com o sentido do movimento.
+            const novosInimigos = inimigos.map(p => p + direcao)
+            //Calcula o novo status do jogo com base na nova posição dos inimigos
+            const novoStatus = avaliarStatus(novosInimigos, estado)
+            //Retorna o novo estado
+            return { ...estado, inimigos: novosInimigos, status: novoStatus }
+        }
+    }
     const moverLasers = (estado) => {
         const { lasers, largura, inimigos, pontuacao, status } = estado
         if (status !== "jogando") return estado
         if (lasers.length === 0 && inimigos.length === 0) return { ...estado, status: "vitoria" }
 
-        // avança lasers para cima (-largura), detecta colisões
         const avancados = lasers
         .map(p => p - largura)
-        .filter(p => p >= 0) // remove lasers que saíram da grade
+        .filter(p => p >= 0)
 
-        // colisões: se um laser coincide com um inimigo, removemos os dois
         const { sobreviventesInimigos, lasersRestantes, explosoesGeradas, pontosGanho } =
         detectarColisoes(avancados, inimigos)
 
@@ -105,56 +117,49 @@ document.addEventListener('DOMContentLoaded', () => {
         ...estado,
         lasers: lasersRestantes,
         inimigos: sobreviventesInimigos,
-        explosoes: explosoesGeradas, // exibidas por 1 tick
+        explosoes: explosoesGeradas, 
         pontuacao: pontuacao + pontosGanho,
         status: novoStatus
         }
     }
 
-    // Função pura auxiliar para colisões
     const detectarColisoes = (lasers, inimigos) => {
-        // transforme inimigos em Set para lookup O(1)
+        
         const setInimigos = new Set(inimigos)
 
         const acertos = lasers.filter(l => setInimigos.has(l))
         const lasersRestantes = lasers.filter(l => !setInimigos.has(l))
         const inimigosRestantes = inimigos.filter(i => !acertos.includes(i))
 
-        // Cada acerto vale 10 pontos (ajuste se quiser)
         const pontosGanho = acertos.length * 10
 
         return {
         sobreviventesInimigos: inimigosRestantes,
         lasersRestantes,
-        explosoesGeradas: acertos, // mesmas posições para desenhar "boom"
+        explosoesGeradas: acertos, 
         pontosGanho
         }
     }
 
-    // --- Renderização (efeito colateral isolado) ---
     const renderizar = (anterior, atual) => {
-        // Limpa classes do estado anterior
+    
         quadradinhos[anterior.jogador].classList.remove("jogador")
-        anterior.inimigos.forEach(p => quadradinhos[p]?.classList.remove("inimigo"))
-        anterior.lasers.forEach(p => quadradinhos[p]?.classList.remove("laser"))
-        anterior.explosoes.forEach(p => quadradinhos[p]?.classList.remove("boom"))
+        anterior.inimigos.map(p => quadradinhos[p]?.classList.remove("inimigo"))
+        anterior.lasers.map(p => quadradinhos[p]?.classList.remove("laser"))
+        anterior.explosoes.map(p => quadradinhos[p]?.classList.remove("boom"))
 
-        // Aplica classes do estado atual
         quadradinhos[atual.jogador].classList.add("jogador")
-        atual.inimigos.forEach(p => quadradinhos[p]?.classList.add("inimigo"))
-        atual.lasers.forEach(p => quadradinhos[p]?.classList.add("laser"))
-        atual.explosoes.forEach(p => quadradinhos[p]?.classList.add("boom"))
+        atual.inimigos.map(p => quadradinhos[p]?.classList.add("inimigo"))
+        atual.lasers.map(p => quadradinhos[p]?.classList.add("laser"))
+        atual.explosoes.map(p => quadradinhos[p]?.classList.add("boom"))
 
-        // Pontuação e status
         if (telaDePontuacao) {
             telaDePontuacao.textContent = String(atual.pontuacao)
         }
 
         if (atual.status !== "jogando") {
-        // Mostra uma mensagem simples usando a própria grade
             const msg = atual.status === "vitoria" ? "VOCÊ VENCEU!" : "VOCÊ PERDEU!"
-        // Opcional: alert(msg) // evitei alert para não “poluir” FP, mas é útil para debug
-            console.log(msg)
+            alert.log(msg)
         }
     }
 
@@ -199,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })
 
-  // --- Loops ---
     const tickInimigos = () => {
         if (estadoAtual.status !== "jogando") return
         atualizarEstado(moverInimigos(estadoAtual))
@@ -215,7 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(tickLasers, 80)
     }
 
-    // --- Inicialização ---
     atualizarEstado(estadoInicial)
     tickInimigos()
     tickLasers()

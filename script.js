@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const quadradinhos = document.querySelectorAll(".grid div")
     //Seleciona o elemento que vai mostrar a pontuação do jogo.
     const telaDePontuacao = document.querySelector("#pontuacao")
-
     /*Cria o estado inicial do jogo, definindo a largura e o tamanho total da grade, a posição inicial do jogador e dos inimigos, a direção de movimento dos
     inimigos.*/
     const estadoInicial = {
@@ -22,10 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pontuacao: 0, //Contador de pontos do jogo.
         status: "jogando" //Indica que o jogo está ativo. (vitoria / jogando / derrota)
     }
-
     //Aqui usamos uma variável mutável para atualizar o estado renderizado na tela.
     let estadoAtual = estadoInicial
-
     //A função para mover o jogador recebe o estado atual do jogador e a tecla pressionada.
     const moverJogador = (estado, tecla) => {
         //Copia as informações relevantes do estado atual que servirão para calcular o novo estado.
@@ -99,46 +96,37 @@ document.addEventListener('DOMContentLoaded', () => {
             return { ...estado, inimigos: novosInimigos, status: novoStatus }
         }
     }
+    //Função que move os lasers disparados pelo jogador.
     const moverLasers = (estado) => {
+        //Copia as informações relevantes do estado para a movimentação do laser.
         const { lasers, largura, inimigos, pontuacao, status } = estado
+        //Verifica a atividade do jogo, em caso de inatividade, retorna o estado inalterado
         if (status !== "jogando") return estado
-        if (lasers.length === 0 && inimigos.length === 0) return { ...estado, status: "vitoria" }
 
-        const avancados = lasers
-        .map(p => p - largura)
-        .filter(p => p >= 0)
-
-        const { sobreviventesInimigos, lasersRestantes, explosoesGeradas, pontosGanho } =
-        detectarColisoes(avancados, inimigos)
-
-        const novoStatus = sobreviventesInimigos.length === 0 ? "vitoria" : estado.status
-
-        return {
-        ...estado,
-        lasers: lasersRestantes,
-        inimigos: sobreviventesInimigos,
-        explosoes: explosoesGeradas, 
-        pontuacao: pontuacao + pontosGanho,
-        status: novoStatus
+        if (inimigos.length === 0) return { ...estado, status: "vitoria" }
+        //Move todos os lasers uma posição para cima e filtra somente aqueles que ainda estão dentro da grade
+        const novaPosicaoLasers = lasers.map((laser) => laser - largura).filter((laser) => laser >= 0)
+        //Chama a função 'detectarColisoes' para calcular o estado após o deslocamento dos lasers.
+        const { inimigosSobreviventes, lasersEmCampo, novasExplosoes, pontosGanho } = detectarColisoes(novaPosicaoLasers, inimigos)
+        //Chama a função 'avaliarStatus' para calcular o novo estado após o deslocamento dos lasers.
+        const novoStatus = avaliarStatus(inimigosSobreviventes, estado)
+        //Retorna o novo estado.
+        return { ...estado, lasers: lasersEmCampo, inimigos: inimigosSobreviventes, 
+            explosoes: novasExplosoes, pontuacao: pontuacao + pontosGanho, status: novoStatus 
         }
     }
-
+    //Função que detecta colisões entre lasers e inimigos e calcula o estado após a colisão.
     const detectarColisoes = (lasers, inimigos) => {
-        
-        const setInimigos = new Set(inimigos)
-
-        const acertos = lasers.filter(l => setInimigos.has(l))
-        const lasersRestantes = lasers.filter(l => !setInimigos.has(l))
-        const inimigosRestantes = inimigos.filter(i => !acertos.includes(i))
-
+        //Declara um acerto, verificando se há algum inimigo que está na mesma posição que um laser.
+        const acertos = lasers.filter((laser) => inimigos.includes(laser))
+        //Se um laser não colidiu com nenhum inimigos, ele entra nesta lista.
+        const lasersEmCampo = lasers.filter((laser) => !inimigos.includes(laser))
+        //As posições que possuem inimigos e que não estão na lista de acertos entram aqui.
+        const inimigosRestantes = inimigos.filter((inimigo) => !acertos.includes(inimigo))
+        //Calcula a pontuação, neste caso, cada acerto garante 10 pontos ao jogador.
         const pontosGanho = acertos.length * 10
-
-        return {
-        sobreviventesInimigos: inimigosRestantes,
-        lasersRestantes,
-        explosoesGeradas: acertos, 
-        pontosGanho
-        }
+        //Retorna os inimigos que sobreviveram, os lasers em jogo, as posições onde houveram acertos (e consequentemente explosões), e os pontos ganhos.
+        return { inimigosSobreviventes: inimigosRestantes, lasersEmCampo, novasExplosoes: acertos, pontosGanho }
     }
     //Função que mostra o estado atual na tela. Ela recebe o estado anterior e estado atual.
     const renderizar = (anterior, atual) => {
@@ -156,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
         telaDePontuacao.textContent = atual.pontuacao
         //Verifica o status e exibe uma mensagem caso o vencedor vença ou perca.
         if (atual.status !== "jogando") {
-            const msg = atual.status === "vitoria" ? "VOCÊ VENCEU!" : "VOCÊ PERDEU!"
-            alert(msg)
+            const mensagem = atual.status === "vitoria" ? "You Win!" : "Game Over!"
+            alert(mensagem)
         }
     }
 

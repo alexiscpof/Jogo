@@ -153,13 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
         atual.lasers.map(p => quadradinhos[p]?.classList.add("laser"))
         atual.explosoes.map(p => quadradinhos[p]?.classList.add("boom"))
 
-        if (telaDePontuacao) {
-            telaDePontuacao.textContent = String(atual.pontuacao)
-        }
+        telaDePontuacao.textContent = atual.pontuacao
 
         if (atual.status !== "jogando") {
             const msg = atual.status === "vitoria" ? "VOCÊ VENCEU!" : "VOCÊ PERDEU!"
-            alert.log(msg)
+            alert(msg)
         }
     }
 

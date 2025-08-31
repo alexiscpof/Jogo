@@ -140,21 +140,21 @@ document.addEventListener('DOMContentLoaded', () => {
         pontosGanho
         }
     }
-
+    //Função que mostra o estado atual na tela. Ela recebe o estado anterior e estado atual.
     const renderizar = (anterior, atual) => {
-    
+        //Remove os objetos das suas posições no estado anterior.
         quadradinhos[anterior.jogador].classList.remove("jogador")
-        anterior.inimigos.map(p => quadradinhos[p]?.classList.remove("inimigo"))
-        anterior.lasers.map(p => quadradinhos[p]?.classList.remove("laser"))
-        anterior.explosoes.map(p => quadradinhos[p]?.classList.remove("boom"))
-
+        anterior.inimigos.map((posicao) => quadradinhos[posicao].classList.remove("inimigo"))
+        anterior.lasers.map((posicao) => quadradinhos[posicao].classList.remove("laser"))
+        anterior.explosoes.map(posicao => quadradinhos[posicao].classList.remove("boom"))
+        //Adiciona os objetos em suas novas posições no estado atual.
         quadradinhos[atual.jogador].classList.add("jogador")
-        atual.inimigos.map(p => quadradinhos[p]?.classList.add("inimigo"))
-        atual.lasers.map(p => quadradinhos[p]?.classList.add("laser"))
-        atual.explosoes.map(p => quadradinhos[p]?.classList.add("boom"))
-
+        atual.inimigos.map(posicao => quadradinhos[posicao].classList.add("inimigo"))
+        atual.lasers.map(posicao => quadradinhos[posicao].classList.add("laser"))
+        atual.explosoes.map(posicao => quadradinhos[posicao].classList.add("boom"))
+        //Atualiza a exibição dos pontos.
         telaDePontuacao.textContent = atual.pontuacao
-
+        //Verifica o status e exibe uma mensagem caso o vencedor vença ou perca.
         if (atual.status !== "jogando") {
             const msg = atual.status === "vitoria" ? "VOCÊ VENCEU!" : "VOCÊ PERDEU!"
             alert(msg)

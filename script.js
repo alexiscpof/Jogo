@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
     /*Cria o estado inicial do jogo, definindo a largura e o tamanho total da grade, a posição inicial do jogador e dos inimigos, a direção de movimento dos
     inimigos.*/
     const estadoInicial = {
-        largura: 16,
+        largura: 20,
         total: quadradinhos.length,
-        jogador: 352, //O jogador inicia na região inferior da grade.
+        jogador: 20*14, //O jogador inicia na região inferior da grade.
         inimigos: [
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-            32, 33, 34, 35, 36, 37, 38, 39, 40, 41
+            20,21,22,23,24,25,26,27,28,29,
+            40,41,42,43,44,45,46,47,48,49
         ], //Os inimigos, inicialmente, ocupam as primeiras linhas da grade.
         direcao: 1, //1 significa que o sentido é para a direita, -1 é para a esquerda.
         lasers: [], //Lista que contém os lasers ativos.
@@ -149,7 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
         telaDePontuacao.textContent = atual.pontuacao
         //Verifica o status e exibe uma mensagem caso o vencedor vença ou perca.
         if (atual.status !== "jogando") {
-            mensagemFinal.textContent = atual.status === "vitoria" ? "You Win!" : "Game Over!"
+            document.querySelector("#mensagemFinalVitoria").style.display = atual.status === "vitoria" ? "block" : "none"
+            document.querySelector("#mensagemFinalDerrota").style.display = atual.status === "derrota" ? "block" : "none"
             hud.style.display = "none"
             menuFinal.style.display = "block"
         }
@@ -187,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const novo = moverInimigos(estadoAtual)
         atualizarEstado(novo)
         //A função é executada a cada meio segundo.
-        setTimeout(timerInimigos, 500)
+        setTimeout(timerInimigos, 350)
     }
     //Timer do movimento dos lasers
     const timerLasers = () => {
@@ -198,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
         //Calcula e atualiza o novo estado após o deslocamento dos lasers.
         const novo = moverLasers(limparExplosoes)
         atualizarEstado(novo)
-        //A função é executada a cada 50 milissegundos.
-        setTimeout(timerLasers, 50)
+        //A função é executada a cada 80 milissegundos.
+        setTimeout(timerLasers, 80)
     }
     //Função que limpa os elementos da tela.
     const limparTela = () => {

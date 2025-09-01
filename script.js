@@ -2,8 +2,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     //Seleciona todos os divs que compõem a grade do jogo. (cada div é uma posição que pode ser ocupada por um elemento como um inimigo, um laser ou o próprio jogador)
     const quadradinhos = document.querySelectorAll(".grid div")
-    //Seleciona o elemento que vai mostrar a pontuação do jogo.
-    const telaDePontuacao = document.querySelector("#pontuacao")    
+    //Seleciona os elementos que mostram a pontuação do jogador, os menus e botões do jogo.
+    const telaDePontuacao = document.querySelector("#pontuacao")  
+    const menuInicial = document.querySelector("#menuInicial")  
+    const hud = document.querySelector("#hud")
+    const menuFinal = document.querySelector("#menuFinal")
+    const mensagemFinal = document.querySelector("#mensagemFinal")
+    const botaoStart = document.querySelector("#botaoStart")
+    const botaoRestart = document.querySelector("#botaoRestart")
     /*Cria o estado inicial do jogo, definindo a largura e o tamanho total da grade, a posição inicial do jogador e dos inimigos, a direção de movimento dos
     inimigos.*/
     const estadoInicial = {
@@ -17,13 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ], //Os inimigos, inicialmente, ocupam as primeiras linhas da grade.
         direcao: 1, //1 significa que o sentido é para a direita, -1 é para a esquerda.
         lasers: [], //Lista que contém os lasers ativos.
-        explosoes: [],
+        explosoes: [], //Lista que contém as posições onde aparecem explosões (resultado de uma colisão entre laser e inimigo).
         pontuacao: 0, //Contador de pontos do jogo.
         status: "jogando", //Indica que o jogo está ativo. (vitoria / jogando / derrota)
         ultimoTiro: 0 //Marca o tempo do último tiro disparado pelo jogador.
     }
     //Aqui usamos uma variável mutável para atualizar o estado renderizado na tela.
-    let estadoAtual = estadoInicial
+    let estadoAtual 
     //A função para mover o jogador recebe o estado atual do jogador e a tecla pressionada.
     const moverJogador = (estado, tecla) => {
         //Copia as informações relevantes do estado atual que servirão para calcular o novo estado.
@@ -136,15 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         anterior.explosoes.map(posicao => quadradinhos[posicao].classList.remove("boom"))
         //Adiciona os objetos em suas novas posições no estado atual.
         quadradinhos[atual.jogador].classList.add("jogador")
-        atual.inimigos.map(posicao => quadradinhos[posicao].classList.add("inimigo"))
-        atual.lasers.map(posicao => quadradinhos[posicao].classList.add("laser"))
-        atual.explosoes.map(posicao => quadradinhos[posicao].classList.add("boom"))
+        atual.inimigos.map((posicao) => quadradinhos[posicao].classList.add("inimigo"))
+        atual.lasers.map((posicao) => quadradinhos[posicao].classList.add("laser"))
+        atual.explosoes.map((posicao) => quadradinhos[posicao].classList.add("boom"))
         //Atualiza a exibição dos pontos.
         telaDePontuacao.textContent = atual.pontuacao
         //Verifica o status e exibe uma mensagem caso o vencedor vença ou perca.
         if (atual.status !== "jogando") {
-            const mensagem = atual.status === "vitoria" ? "You Win!" : "Game Over!"
-            alert(mensagem)
+            mensagemFinal.textContent = atual.status === "vitoria" ? "You Win!" : "Game Over!"
+            hud.style.display = "none"
+            menuFinal.style.display = "block"
         }
     }
     //Esta função atualiza o estado do jogo, recebendo o novo estado calculado pelas funções acima, renderiza ele e em seguida reatribui o valor da variável do estado.
@@ -194,8 +201,25 @@ document.addEventListener('DOMContentLoaded', () => {
         //A função é executada a cada 50 milissegundos.
         setTimeout(timerLasers, 50)
     }
-    //Chamada das funções responsáveis pelo loops do jogo.
-    atualizarEstado(estadoInicial)
-    timerInimigos()
-    timerLasers()
+    //Função que limpa os elementos da tela.
+    const limparTela = () => {
+        quadradinhos.forEach((quadrado) => quadrado.classList.remove("jogador","inimigo","laser","boom"))
+    }
+    //Função que inicia o jogo.
+    const iniciarJogo = () => { 
+        //Atribui o valor do estado atual.
+        estadoAtual = estadoInicial
+        //Chama a função para limpar a tela.
+        limparTela()
+        menuInicial.style.display = "none"
+        menuFinal.style.display = "none"
+        hud.style.display = "block"
+        //Chama as funções responsáveis pelos timers e loop do jogo.
+        atualizarEstado(estadoAtual)
+        timerInimigos()
+        timerLasers()
+    }
+    //Adiciona o ouvinte de evento aos botões de Iniciar e Reiniciar.
+    botaoStart.addEventListener("click", iniciarJogo)
+    botaoRestart.addEventListener("click", iniciarJogo)
 })

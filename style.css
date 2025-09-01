@@ -1,3 +1,52 @@
+body {
+    font-family: "Jersey 10", sans-serif;
+    font-weight: 600px;
+    background: black;
+    color: #0f0;
+    text-align: center;
+}
+#menuInicial { display: block; }
+#menuFinal { display: none; }
+.menu {
+    display: none;
+    margin-top: 100px;
+    font-size: 40px;     
+    line-height: 1.6;
+}
+.menu h1, 
+.menu h2 {
+    font-size: 100px;     
+    margin-bottom: 20px;
+}
+#hud {
+    display: none;
+}
+.botao {
+    background: #111;
+    color: #0f0;
+    border: 2px solid #0f0;
+    padding: 10px 20px;
+    margin: 20px;
+    font-family: "Jersey 10", sans-serif;
+    font-size: 30px;
+    padding: 15px 30 px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.botao:hover {
+    background: #0f0;
+    color: #111;
+    box-shadow: 0 0 15px #0f0;
+}
+#hud h3 {
+  background: #111;
+  border: 2px solid #0f0;
+  padding: 10px 20px;
+  border-radius: 10px;
+  display: inline-block;
+  font-size: 28px;
+  box-shadow: 0 0 15px #0f0;
+}
 .grid {
     display: flex;
     flex-wrap: wrap;

@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     //Seleciona todos os divs que compõem a grade do jogo. (cada div é uma posição que pode ser ocupada por um elemento como um inimigo, um laser ou o próprio jogador)
     const quadradinhos = document.querySelectorAll(".grid div")
-    //Seleciona os elementos que mostram a pontuação do jogador, os menus e botões do jogo.
+    //Seleciona os elementos que mostram a pontuação do jogador, os menus, botões do jogo e sons.
     const telaDePontuacao = document.querySelector("#pontuacao")  
     const menuInicial = document.querySelector("#menuInicial")  
     const hud = document.querySelector("#hud")
@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const mensagemFinal = document.querySelector("#mensagemFinal")
     const botaoStart = document.querySelector("#botaoStart")
     const botaoRestart = document.querySelector("#botaoRestart")
+    const somTiro = document.querySelector("#somTiro")
+    somTiro.volume = 0.05
+    const somExplosao = document.querySelector("#somExplosao") 
+    somExplosao.volume = 0.5 
+    const musicaFundo = document.querySelector("#musicaFundo")
+    musicaFundo.volume = 0.05
     /*Cria o estado inicial do jogo, definindo a largura e o tamanho total da grade, a posição inicial do jogador e dos inimigos, a direção de movimento dos
     inimigos.*/
     const estadoInicial = {
@@ -55,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (status !== "jogando") return estado
         //Define a posição onde surge o laser, que é uma posição acima da posição do jogador.
         const origem = jogador - largura
+        //Toca o efeito sonoro de tiro.
+        somTiro.currentTime = 0
+        somTiro.play()
         //Retorna o estado incluindo o disparo na lista 'lasers'.
         return { ...estado, lasers: [...estado.lasers, origem]}
     }
@@ -113,6 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const novaPosicaoLasers = lasers.map((laser) => laser - largura).filter((laser) => laser >= 0)
         //Chama a função 'detectarColisoes' para calcular o estado após o deslocamento dos lasers.
         const { inimigosSobreviventes, lasersEmCampo, novasExplosoes, pontosGanho } = detectarColisoes(novaPosicaoLasers, inimigos)
+        //Toca o efeito sonoro de explosão, caso hajam acertos.
+        if (novasExplosoes.length > 0) {
+            somExplosao.currentTime = 0
+            somExplosao.play()
+        }
         //Chama a função 'avaliarStatus' para calcular o novo estado após o deslocamento dos lasers.
         const novoStatus = avaliarStatus(inimigosSobreviventes, estado)
         //Retorna o novo estado.
@@ -153,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector("#mensagemFinalDerrota").style.display = atual.status === "derrota" ? "block" : "none"
             hud.style.display = "none"
             menuFinal.style.display = "block"
+            musicaFundo.pause()
         }
     }
     //Esta função atualiza o estado do jogo, recebendo o novo estado calculado pelas funções acima, renderiza ele e em seguida reatribui o valor da variável do estado.
@@ -219,6 +234,9 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarEstado(estadoAtual)
         timerInimigos()
         timerLasers()
+        //Toca a música de fundo em loop.
+        musicaFundo.currentTime = 0
+        musicaFundo.play()
     }
     //Adiciona o ouvinte de evento aos botões de Iniciar e Reiniciar.
     botaoStart.addEventListener("click", iniciarJogo)
